@@ -1,0 +1,48 @@
+extends layout
+
+block content
+  div.main(style="width: 100%; height:100%; z-index:99; overflow:hidden;")
+  div(style="position: absolute; top:0px; bottom:0px; left:0px; right:0px; background: url('icons/blurred-city-lights-night1.jpg'); background-size: cover;  background-repeat: no-repeat;")
+    div#header 
+      h1#caption(style='width:80%') &nbsp; PDF to Text
+      div(style="position:absolute; top:1px; height:60px; width:200px; color:white; right:0px; opacity:1.0")
+        img(src='/icons/PNGPIX-COM-Microsoft-Logo-PNG-Transparent.png' style='height:45px; width:180px;')  
+    div(style="width:400px; top:60px; bottom:0px; background-color:black; color:white; border:solid; opacity:0.8; position:absolute; border:2px solid #fff; margin:10px;padding:10px")
+      div(style="width:400px; height:340px; margin-top:30px;vertical-align:baseline;")
+        div#droparea
+          div#dropareainner
+            p
+            img(src='/icons/pdf.svg' style='width:96; height:96px; margin-top:10px; margin-bottom:20px;')
+            p#dropfiletext Drop 'pdf' file here
+            p or
+            p
+              input#uploadbtn(class='uploadbtn' type='button' value="Select File")
+            input#upload(type='file')
+      div#uploadWait(style="display:none;")
+        div(style="position:absolute; left:27%; top:50%")
+          div#uploadProgress(class="c100 p0 big blue")
+            span#percentage 0%
+            div.slice
+              div.bar
+              div.fill       
+      div#waitImage(style="position:absolute; left:30%; bottom:60px; height:60px; color:white; display:none;")
+        img(src='/icons/103.gif')  
+    
+    div#transcription(style="left:430px; right:0px; top:60px; bottom:0px; background-color:black; color:white; border:solid; opacity:0.9; position:absolute; border:2px solid #fff; margin:10px;padding:10px;")
+      div.tab#tab(style="visibility:hidden;")
+        button.tablinks(onclick="showTab(event, 'structureFrame')" value="Structure") Document
+        button.tablinks(onclick="showTab(event, 'contentFrame')" value="Content") Content
+      div.tabcontent#structureFrame(style="left:10px; right:12px; top:60px; bottom:52px; overflow:auto; background-color:black; opacity:1.0; position:absolute;")
+        div#structure
+      div.tabcontent#contentFrame(style="left:10px; right:12px; top:60px; bottom:52px; overflow:auto; background-color:black; opacity:1.0; position:absolute;")
+        div#content
+      div#actions(style="visibility:hidden;")
+        input#saveBtn(type='button' value="Save" style="position:absolute; bottom:12px; height:30px; width:90px; left:10px;")
+        input#copyBtn(type='button' value="Copy" style="position:absolute; bottom:12px; height:30px; width:90px; left:120px;")
+ 
+  script(src="/modules/jquery/dist/jquery.min.js" )
+  script#pdf-js(src="/javascripts/pdf.js")
+  script.
+    PDFJS.workerSrc = document.getElementById("pdf-js").getAttribute("src");
+  script(src="/javascripts/main.js")
+

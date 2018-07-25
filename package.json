@@ -1,0 +1,14 @@
+{
+  "name": "azure-pdf-text-service",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "express": "3.4.8",
+    "pug": "2.0.0-alpha6",
+    "multiparty": "4.1.3",
+    "jquery": "^3.3.1"
+    }
+}
