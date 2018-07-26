@@ -31,12 +31,9 @@ block content
     div#transcription(style="left:430px; right:0px; top:60px; bottom:0px; background-color:black; color:white; border:solid; opacity:0.9; position:absolute; border:2px solid #fff; margin:10px;padding:10px;")
       div.tab#tab(style="visibility:hidden;")
         button.tablinks#tab1(onclick="showTab(event, 'structureFrame', 'tab1')" value="Structure") Document
-        button.tablinks#tab2(onclick="showTab(event, 'contentFrame', 'tab2')" value="Content") Content
         button.tablinks#tab3(onclick="showTab(event, 'textFrame', 'tab3')" value="Text") Text
       div.tabcontent#structureFrame(style="left:10px; right:12px; top:60px; bottom:52px; overflow:auto; background-color:black; opacity:0.9; position:absolute;")
         div#structure
-      div.tabcontent#contentFrame(style="left:10px; right:12px; top:60px; bottom:52px; overflow:auto; background-color:black; opacity:0.9; position:absolute;")
-        div#content
       div.tabcontent#textFrame(style="left:10px; right:12px; top:60px; bottom:52px; background-color:black; opacity:0.9; position:absolute;")
         textarea#text(style="left:5px; width:99%; top:5px; height:98%; position:absolute;" readonly)
       div#actions(style="visibility:hidden;")
@@ -44,8 +41,10 @@ block content
         input#copyBtn(type='button' value="Copy" style="position:absolute; bottom:12px; height:30px; width:90px; left:120px;")
  
   script(src="/modules/jquery/dist/jquery.min.js" )
-  script#pdf-js(src="/javascripts/pdf.js")
+  script#pdf-js(src="/modules/pdfjs-dist/build/pdf.js")
+  script#pdf-js-web(src="/modules/pdfjs-dist/web/pdf_viewer.js")
+  script#pdf-js-worker(src="/modules/pdfjs-dist/build/pdf.worker.js")
   script.
-    PDFJS.workerSrc = document.getElementById("pdf-js").getAttribute("src");
+    pdfjsLib.GlobalWorkerOptions.workerSrc = document.getElementById("pdf-js-worker").getAttribute("src");
   script(src="/javascripts/main.js")
 

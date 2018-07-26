@@ -1,5 +1,6 @@
 /**
-  *JQuery - Document Ready
+  * PDF - Processor
+  *
   */
  var pdfFile = null;
  var speechTranscript = '';
@@ -9,7 +10,7 @@
  /**
   * Show Tab
   */
-function showTab(e, tab, button) {
+function showTab(evt, tab, button) {
     var iTab, tabcontent, tabbuttons, tablinks;
 
     // Get all elements with class="tabcontent" and hide them
@@ -32,25 +33,83 @@ function showTab(e, tab, button) {
     evt.currentTarget.className += " active";
 }
 
-function getText(domElement) {
-    var root = domElement;
-    var text = [];
-  
-    function traverseTree(root) {
-      Array.prototype.forEach.call(root.childNodes, function(child) {
-        if (child.nodeType === 3) {
-          var str = child.nodeValue.trim().replace(/[^\w\s\n]/gi, '');
-          if (str.length > 0) {
-            text.push(str);
-          }
-        } else {
-          traverseTree(child);
-        }
-      });
-    }
-    traverseTree(root);
+function renderPage(pdf, iPage, text) {
 
-    return text.join(' ');
+    return new Promise(function(resolve, reject) {
+ 
+        pdf.getPage(iPage).then(function (page) {
+            console.log("Started  Page: " + iPage);
+            var scale = 1.5;
+            var viewport = page.getViewport(scale);
+            var canvas = document.createElement('canvas');
+            var context = canvas.getContext('2d');
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+
+            var renderContext = {
+                canvasContext: context,
+                viewport: viewport
+            };
+
+            page.render(renderContext);
+
+            console.log("Built Page: " + iPage);
+  
+
+            page.getTextContent().then(function (textContent) {
+
+                textContent.items.forEach(function (textItem) {
+
+                    text.push(textItem.str);
+
+                });
+
+                resolve(canvas);
+
+            });
+                  
+        });
+
+    });
+
+}
+
+function processPages(pdf, numPages, iPage, text) {
+
+    console.log("Rendering Page: " + iPage);
+
+    renderPage(pdf, iPage, text).then(function(canvas) {
+        console.log("Promised Canvas: " + iPage);
+        var progress = parseInt( (((iPage) / numPages) * 100), 10);   
+        document.getElementById("uploadProgress").className = "c100 p" + 
+
+        progress + " big green";
+        $('#percentage').html(progress + "%");
+
+        $('#structure')[0].appendChild(canvas);
+
+        if (iPage < numPages) {
+            processPages(pdf, numPages, iPage + 1, text);
+        } else {   
+            var html = "";
+            for (var iText = 0; iText < text.length; iText++) {
+                html += text[iText] + "\n";
+            }
+
+            $('#text').text(html);
+
+            $('#structureFrame').css('display', 'inline-block');
+            $('#tab').css('visibility', 'visible');
+            $('#actions').css('visibility', 'visible');
+            $('#uploadWait').css('display', 'none');
+            $('#tab1').css('text-decoration', 'underline');
+            $('#waitImage').css('display', 'none');
+        
+            console.log('completed conversion');
+
+        }
+    
+    });
 
 }
 
@@ -64,93 +123,20 @@ function convert(pdfContent) {
     var complete = 0;
 
     var structure = $('#structure')[0];  
-    var content = $('#content')[0];
         
     while (structure.firstChild) {
         structure.removeChild(structure.firstChild);
     }
 
-    while (content.firstChild) {
-        content.removeChild(content.firstChild);
-    }
-
-    var pdf = new PDFJS.PDFDoc(pdfContent);
-    var total = pdf.numPages;
-
-    console.log('Pages: ' + total);
+    pdfjsLib.getDocument(pdfContent).then(function (pdf) {
+        var numPages = pdf.numPages;
+        var text = [];
+        var iPage = 1;
     
-     for (iPage = 1; iPage <= total; iPage++) {
-        var page = pdf.getPage(iPage);
-        var canvas = document.createElement('canvas');
-        canvas.id = 'page' + iPage;
-        canvas.mozOpaque = true;
-        structure.appendChild(canvas);
-    
-        canvas.width = page.width;
-        canvas.height = page.height;
-    
-        var context = canvas.getContext('2d');
+        processPages(pdf, numPages, 1, text);
 
-        context.fillStyle = 'rgb(255, 255, 255)';
-        context.fillRect(0, 0, canvas.width, canvas.height);
-        context.restore();
 
-        var textLayer = document.createElement('div');
-        textLayer.className = 'textLayer';
-
-        content.appendChild(textLayer);
-          
-        page.startRendering(context, function() {
-            
-            window.setTimeout(function() {
-                var progress = parseInt( (((complete + 1) / total) * 100), 10);   
-
-                document.getElementById("uploadProgress").className = "c100 p" + 
-                progress + " big green";
-
-                $('#percentage').html(progress + "%");
-
-            }, 10);
-
-            console.log('Page Rendering: ' + complete +  ":" + total);
-
-           if (++complete == total) { 
-                console.log("Finished rendering. Extracting text...");
-            
-                window.setTimeout(function(){
-                    var progress = parseInt( ((iPage / total - 1) * 100), 10);   
-
-                    document.getElementById("uploadProgress").className = "c100 p" + 
-                    progress + " big green";
-        
-                    $('#percentage').html(progress + "%");
-        
-                    var layers = [];
-                    var nodes = document.querySelectorAll(".textLayer > div");
-                    for (var j = 0; j < nodes.length; j++) {
-                        layers.push(nodes[j].textContent + "\n");
-                    }
-                    
-                    $('#structureFrame').css('display', 'inline-block');
-                    $('#tab').css('visibility', 'visible');
-                    $('#actions').css('visibility', 'visible');
-                    $('#uploadWait').css('display', 'none');
-                    $('#tab1').css('text-decoration', 'underline');
-                    $('#text').text(getText($('#content')[0]));
-                    $('#waitImage').css('display', 'none');
- 
-                }, 1000);
-
-            }
-        }, textLayer);
-
-    }
-
-    this.setMessage = function(text){
-        console.log(text);
-    }
-    
-    console.log('completed conversion');
+    });
 
 }
 
