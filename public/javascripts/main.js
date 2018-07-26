@@ -79,7 +79,7 @@ function convert(pdfContent) {
 
     console.log('Pages: ' + total);
     
-    for (iPage = 1; iPage <= total; iPage++) {
+     for (iPage = 1; iPage <= total; iPage++) {
         var page = pdf.getPage(iPage);
         var canvas = document.createElement('canvas');
         canvas.id = 'page' + iPage;
@@ -101,19 +101,20 @@ function convert(pdfContent) {
         content.appendChild(textLayer);
           
         page.startRendering(context, function() {
-
-
+            
             window.setTimeout(function() {
-                var progress = parseInt( ((iPage / total - 1) * 100), 10);   
+                var progress = parseInt( (((complete + 1) / total) * 100), 10);   
 
                 document.getElementById("uploadProgress").className = "c100 p" + 
                 progress + " big green";
 
                 $('#percentage').html(progress + "%");
-                
-            }, 100);
 
-           if (++complete == total){ 
+            }, 10);
+
+            console.log('Page Rendering: ' + complete +  ":" + total);
+
+           if (++complete == total) { 
                 console.log("Finished rendering. Extracting text...");
             
                 window.setTimeout(function(){
@@ -138,11 +139,11 @@ function convert(pdfContent) {
                     $('#text').text(getText($('#content')[0]));
                     $('#waitImage').css('display', 'none');
  
-                }, 100);
+                }, 1000);
 
             }
         }, textLayer);
-    
+
     }
 
     this.setMessage = function(text){
