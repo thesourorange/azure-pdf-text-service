@@ -9,29 +9,35 @@
  /**
   * Show Tab
   */
-function showTab(e, tab) {
-    var iTab, tabcontent, tablinks;
+function showTab(e, tab, button) {
+    var iTab, tabcontent, tabbuttons, tablinks;
 
     // Get all elements with class="tabcontent" and hide them
     tabcontent = document.getElementsByClassName("tabcontent");
     for (iTab = 0; iTab < tabcontent.length; iTab++) {
         tabcontent[iTab].style.display = "none";
     }
-
+  
     // Get all elements with class="tablinks" and remove the class "active"
     tablinks = document.getElementsByClassName("tablinks");
     for (iTab = 0; iTab < tablinks.length; iTab++) {
         tablinks[iTab].className = tablinks[iTab].className.replace(" active", "");
+        tablinks[iTab].style.textDecoration = "none";
     }
 
     // Show the current tab, and add an "active" class to the button that opened the tab
     document.getElementById(tab).style.display = "block";
+    document.getElementById(button).style.textDecoration = "underline";
+ 
     evt.currentTarget.className += " active";
 }
 
 function convert(pdfContent) {
  
     console.log('started conversion');
+
+    $('#waitImage').css('display', 'block');
+
     var self = this;
     var complete = 0;
 
@@ -71,7 +77,7 @@ function convert(pdfContent) {
         textLayer.className = 'textLayer';
 
         content.appendChild(textLayer);
-               
+          
         page.startRendering(context, function() {
 
            if (++complete == total){ 
@@ -87,7 +93,11 @@ function convert(pdfContent) {
                     $('#structureFrame').css('display', 'inline-block');
                     $('#tab').css('visibility', 'visible');
                     $('#actions').css('visibility', 'visible');
-             
+                    $('#uploadWait').css('display', 'none');
+                    $('#tab1').css('text-decoration', 'underline');
+                    $('#text').text($('#content').text().replace(/[^\w\s\n]/gi, ''));
+                    $('#waitImage').css('display', 'none');
+ 
                 }, 100);
 
             }
@@ -104,21 +114,16 @@ function convert(pdfContent) {
 }
 
 $('#copyBtn').on('click', function(e) {
-    var el = document.getElementsByClassName('textLayer');
+    var el = $('#content')[0];
     var range = document.createRange();
-
-    for (var iEl in el) {
-        if  (el[iEl] instanceof HTMLElement) {
-            range.selectNodeContents(el[iEl]);
-            alert(el[iEl].nodeValue)
-        }
-    }
  
+    range.selectNodeContents(el)
     var sel = window.getSelection();
  
     sel.removeAllRanges();
     
     sel.addRange(range);
+
     document.execCommand('copy');
     
     alert('Contents copied to Clipboard');
@@ -126,6 +131,37 @@ $('#copyBtn').on('click', function(e) {
     return false;
 
  });
+
+ $('#saveBtn').on('click', function(e) {
+     try {
+    var saveLink = document.createElementNS("http://www.w3.org/1999/xhtml", "a");
+    var canUseSaveLink = "download" in saveLink;
+    var getURL = function() {
+        return view.URL || view.webkitURL || view;
+    }
+
+    var click = function(node) {
+        var event = new MouseEvent("click");
+        node.dispatchEvent(event);
+    }
+
+    var properties = {type: 'text/plain'}; 
+    var fileName = 'pdf.txt';
+
+    file = new File([$('#text').text()], fileName, properties);
+
+    var fileURL = URL.createObjectURL(file);
+
+    saveLink.href = fileURL;
+    saveLink.download = fileName;
+    
+    click(saveLink);
+
+    } catch (e) {
+        alert(e);
+    }
+
+});
 
 $(document).ready(function() {
     var header = $('#caption').html();
@@ -166,6 +202,7 @@ $(document).ready(function() {
     });
      
     defaultUploadBtn.on('change', function() {
+
         var files = $(this)[0].files;
 
         processFiles(files);   
@@ -188,8 +225,17 @@ $(document).ready(function() {
         if (file.size == 0) {
             alert("File: '" + file.name + "' is empty!");
         } else if( (/pdf/i).test(file.type) ) {  
-
             $('#uploadWait').css('display', 'block');
+            $('#tab').css('visibility', 'hidden');
+            $('#structureFrame').css('display', 'none');
+            $('#contentFrame').css('display', 'none');
+            $('#textFrame').css('display', 'none');
+            $('#actions').css('visibility', 'hidden');
+
+            var tablinks = document.getElementsByClassName("tablinks");
+            for (iTab = 0; iTab < tablinks.length; iTab++) {
+                tablinks[iTab].style.textDecoration = "none";
+            }
 
             pdfFile = file;      
             var reader = new FileReader();
@@ -199,11 +245,11 @@ $(document).ready(function() {
                 
                  $('#caption').html(header.replace(/$.*/, '&nbsp;-&nbsp;\'' + file.name + '\''));
                 
-                 window.setTimeout(function() {
- 
-                    $('#uploadWait').css('display', 'none');
-
-                 }, 1000);
+                 var progress = "100";
+                 document.getElementById("uploadProgress").className = "c100 p" + 
+                 progress + 
+                 " big blue";
+                 $('#percentage').html(progress + "%");
 
                  convert(reader.result);
                 
