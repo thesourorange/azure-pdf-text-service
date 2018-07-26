@@ -32,6 +32,28 @@ function showTab(e, tab, button) {
     evt.currentTarget.className += " active";
 }
 
+function getText(domElement) {
+    var root = domElement;
+    var text = [];
+  
+    function traverseTree(root) {
+      Array.prototype.forEach.call(root.childNodes, function(child) {
+        if (child.nodeType === 3) {
+          var str = child.nodeValue.trim().replace(/[^\w\s\n]/gi, '');
+          if (str.length > 0) {
+            text.push(str);
+          }
+        } else {
+          traverseTree(child);
+        }
+      });
+    }
+    traverseTree(root);
+
+    return text.join(' ');
+
+}
+
 function convert(pdfContent) {
  
     console.log('started conversion');
@@ -80,10 +102,28 @@ function convert(pdfContent) {
           
         page.startRendering(context, function() {
 
+
+            window.setTimeout(function() {
+                var progress = parseInt( ((iPage / total - 1) * 100), 10);   
+
+                document.getElementById("uploadProgress").className = "c100 p" + 
+                progress + " big green";
+
+                $('#percentage').html(progress + "%");
+                
+            }, 100);
+
            if (++complete == total){ 
                 console.log("Finished rendering. Extracting text...");
             
                 window.setTimeout(function(){
+                    var progress = parseInt( ((iPage / total - 1) * 100), 10);   
+
+                    document.getElementById("uploadProgress").className = "c100 p" + 
+                    progress + " big green";
+        
+                    $('#percentage').html(progress + "%");
+        
                     var layers = [];
                     var nodes = document.querySelectorAll(".textLayer > div");
                     for (var j = 0; j < nodes.length; j++) {
@@ -95,7 +135,7 @@ function convert(pdfContent) {
                     $('#actions').css('visibility', 'visible');
                     $('#uploadWait').css('display', 'none');
                     $('#tab1').css('text-decoration', 'underline');
-                    $('#text').text($('#content').text().replace(/[^\w\s\n]/gi, ''));
+                    $('#text').text(getText($('#content')[0]));
                     $('#waitImage').css('display', 'none');
  
                 }, 100);
