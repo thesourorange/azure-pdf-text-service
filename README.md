@@ -1,5 +1,3 @@
 # azure-pdf-text-service
 
-Azure Viz 04 is a simple Speech to Text translater
-
-
+A simple pdf to text iusing Mozilla PDF libraries - the application is developed in node.js
