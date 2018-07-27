@@ -7,13 +7,15 @@
  var recognizer = null;
  var state = 0;
 
- /**
-  * Show Tab
-  */
-function showTab(evt, tab, button) {
-    var iTab, tabcontent, tabbuttons, tablinks;
 
-    // Get all elements with class="tabcontent" and hide them
+ /**
+  * Inactivate Tabs
+  * 
+  */
+ function inactivateTabs() {
+    var iTab, tabcontent, tabbuttons, tablinks;
+     
+     // Get all elements with class="tabcontent" and hide them
     tabcontent = document.getElementsByClassName("tabcontent");
     for (iTab = 0; iTab < tabcontent.length; iTab++) {
         tabcontent[iTab].style.display = "none";
@@ -26,19 +28,49 @@ function showTab(evt, tab, button) {
         tablinks[iTab].style.textDecoration = "none";
     }
 
+ }
+
+/**
+ * Show the Active Tab
+ * 
+ * @param {*} evt the Tab to Show
+ * @param {*} tab the name of the Tab
+ * @param {*} button the Tab's button
+ */
+function showTab(evt, tab, button) {
+ 
+    inactivateTabs();
+
     // Show the current tab, and add an "active" class to the button that opened the tab
     document.getElementById(tab).style.display = "block";
     document.getElementById(button).style.textDecoration = "underline";
  
     evt.currentTarget.className += " active";
+
 }
 
-function renderPage(pdf, iPage, text) {
+/**
+ * Render the PDF Page
+ * @param {*} pdf the PDF document
+ * @param {integer} numPages the number of Pages
+ * @param {integer} iPage the Page Number (Starts from '1')
+ * @param {string[]} text the Document's text
+ */
+function renderPage(pdf, numPages, iPage, text) {
 
     return new Promise(function(resolve, reject) {
  
         pdf.getPage(iPage).then(function (page) {
             console.log("Started  Page: " + iPage);
+            window.setTimeout(() => {
+
+                var progress = parseInt( (((iPage) / (numPages + 1)) * 100), 10);   
+                document.getElementById("uploadProgress").className = "c100 p" + 
+        
+                progress + " big green";
+                $('#percentage').html(progress + "%");
+            }, 10);
+            
             var scale = 1.5;
             var viewport = page.getViewport(scale);
             var canvas = document.createElement('canvas');
@@ -77,13 +109,8 @@ function processPages(pdf, numPages, iPage, text) {
 
     console.log("Rendering Page: " + iPage);
 
-    renderPage(pdf, iPage, text).then(function(canvas) {
+    renderPage(pdf, numPages, iPage, text).then(function(canvas) {
         console.log("Promised Canvas: " + iPage);
-        var progress = parseInt( (((iPage) / numPages) * 100), 10);   
-        document.getElementById("uploadProgress").className = "c100 p" + 
-
-        progress + " big green";
-        $('#percentage').html(progress + "%");
 
         $('#structure')[0].appendChild(canvas);
 
@@ -97,14 +124,26 @@ function processPages(pdf, numPages, iPage, text) {
 
             $('#text').text(html);
 
-            $('#structureFrame').css('display', 'inline-block');
-            $('#tab').css('visibility', 'visible');
-            $('#actions').css('visibility', 'visible');
-            $('#uploadWait').css('display', 'none');
-            $('#tab1').css('text-decoration', 'underline');
-            $('#waitImage').css('display', 'none');
-        
-            console.log('completed conversion');
+            var tablinks = document.getElementsByClassName("tablinks");
+            for (iTab = 0; iTab < tablinks.length; iTab++) {
+                tablinks[iTab].className = tablinks[iTab].className.replace(" active", "");
+                tablinks[iTab].style.textDecoration = "none";
+            }
+
+            window.setTimeout(() => {
+
+                inactivateTabs();
+
+                $('#rendering').css('display', 'inline-block');
+                $('#structureFrame').css('display', 'inline-block');
+                $('#uploadWait').css('display', 'none');
+                $('#tab1').css('text-decoration', 'underline');
+                $('#tab1').addClass('active');
+                
+                $('#waitImage').css('display', 'none');
+            
+                console.log('completed conversion');
+              }, 200);
 
         }
     
@@ -142,8 +181,6 @@ function convert(pdfContent) {
 $('#copyBtn').on('click', function(e) {
     $("#text").select();
     document.execCommand('copy');
-
-    alert('Contents copied to Clipboard');
 
     return false;
 
@@ -234,20 +271,12 @@ $(document).ready(function() {
     }
     
     var readFile = function(file) {
+
         if (file.size == 0) {
             alert("File: '" + file.name + "' is empty!");
         } else if( (/pdf/i).test(file.type) ) {  
-            $('#uploadWait').css('display', 'block');
-            $('#tab').css('visibility', 'hidden');
-            $('#structureFrame').css('display', 'none');
-            $('#contentFrame').css('display', 'none');
-            $('#textFrame').css('display', 'none');
-            $('#actions').css('visibility', 'hidden');
-
-            var tablinks = document.getElementsByClassName("tablinks");
-            for (iTab = 0; iTab < tablinks.length; iTab++) {
-                tablinks[iTab].style.textDecoration = "none";
-            }
+            $('#uploadWait').css('display', 'inline-block');
+            $('#rendering').css('display', 'none');
 
             pdfFile = file;      
             var reader = new FileReader();
@@ -277,6 +306,7 @@ $(document).ready(function() {
                     $('#percentage').html(progress + "%");
 
                 }
+
             }
 
             reader.readAsArrayBuffer(file);
