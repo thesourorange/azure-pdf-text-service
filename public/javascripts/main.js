@@ -55,7 +55,6 @@ function renderPage(pdf, iPage, text) {
 
             console.log("Built Page: " + iPage);
   
-
             page.getTextContent().then(function (textContent) {
 
                 textContent.items.forEach(function (textItem) {
@@ -141,18 +140,9 @@ function convert(pdfContent) {
 }
 
 $('#copyBtn').on('click', function(e) {
-    var el = $('#content')[0];
-    var range = document.createRange();
- 
-    range.selectNodeContents(el)
-    var sel = window.getSelection();
- 
-    sel.removeAllRanges();
-    
-    sel.addRange(range);
-
+    $("#text").select();
     document.execCommand('copy');
-    
+
     alert('Contents copied to Clipboard');
 
     return false;
@@ -160,33 +150,28 @@ $('#copyBtn').on('click', function(e) {
  });
 
  $('#saveBtn').on('click', function(e) {
-     try {
     var saveLink = document.createElementNS("http://www.w3.org/1999/xhtml", "a");
     var canUseSaveLink = "download" in saveLink;
     var getURL = function() {
         return view.URL || view.webkitURL || view;
     }
-
+ 
     var click = function(node) {
         var event = new MouseEvent("click");
         node.dispatchEvent(event);
     }
-
+  
     var properties = {type: 'text/plain'}; 
     var fileName = 'pdf.txt';
-
-    file = new File([$('#text').text()], fileName, properties);
-
+      
+    file = new Blob([$('#text').val()], {type : "text/plain"});
+ 
     var fileURL = URL.createObjectURL(file);
 
     saveLink.href = fileURL;
     saveLink.download = fileName;
-    
+     
     click(saveLink);
-
-    } catch (e) {
-        alert(e);
-    }
 
 });
 
