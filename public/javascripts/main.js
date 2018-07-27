@@ -119,7 +119,7 @@ function processPages(pdf, numPages, iPage, text) {
         } else {   
             var html = "";
             for (var iText = 0; iText < text.length; iText++) {
-                html += text[iText] + "\n";
+                html += text[iText] + "\r\n";
             }
 
             $('#text').text(html);
