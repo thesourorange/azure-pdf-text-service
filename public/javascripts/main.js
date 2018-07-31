@@ -87,11 +87,19 @@ function renderPage(pdf, numPages, iPage, text) {
 
             console.log("Built Page: " + iPage);
   
+            var yTranform = 0;
+
             page.getTextContent().then(function (textContent) {
 
                 textContent.items.forEach(function (textItem) {
 
-                    text.push(textItem.str);
+                    if (yTranform == textItem.transform[ textItem.transform.length-1] && text.length > 0) {
+                        text[text.length - 1] = text[text.length - 1] + ' ' + textItem.str;
+                   } else {
+                        text.push(textItem.str);
+                    }
+
+                    yTranform = textItem.transform[ textItem.transform.length-1];
 
                 });
 
